@@ -292,7 +292,8 @@ button:disabled {
   color: var(--white);
 }
 
-.print-preview {
+.print-preview,
+.print-summary {
   margin-bottom: 40px;
   background: var(--white);
 }
@@ -381,10 +382,11 @@ button:disabled {
   body {
     background: var(--white);
     color: #111827;
+    font-size: 11px;
+    line-height: 1.35;
   }
 
-  main,
-  .site-header {
+  main {
     width: 100%;
   }
 
@@ -401,7 +403,7 @@ button:disabled {
   }
 
   .site-header {
-    padding: 0 0 14px;
+    display: none;
   }
 
   .panel.quote-info,
@@ -410,24 +412,78 @@ button:disabled {
     display: none;
   }
 
-  .product-card,
+  .print-preview,
+  .print-summary {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0 0 10px;
+    padding: 0 0 10px;
+  }
+
   .print-preview {
-    break-inside: avoid;
+    border-bottom: 2px solid #123d6b;
+  }
+
+  .product-card {
+    break-inside: auto;
     border: 1px solid #d9e0e8;
     box-shadow: none;
-    margin-top: 14px;
-    padding: 16px;
+    margin-top: 8px;
+    padding: 10px;
   }
 
   .customer-details {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 8px;
+    padding: 8px;
   }
 
   .detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .amount-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 90px 120px 140px;
+    margin-top: 8px;
+  }
+
+  .site-header h1,
+  .product-card h2,
+  .preview-header h2 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .product-details h3 {
+    font-size: 14px;
+    margin: 6px 0 3px;
+  }
+
+  .product-details p {
+    margin-bottom: 8px;
+  }
+
+  .detail-block {
+    padding: 8px;
+  }
+
+  .detail-block h4 {
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+
+  .detail-block li {
+    margin: 2px 0;
+  }
+
+  .summary-rows {
+    margin-top: 8px;
+  }
+
+  .terms-grid {
+    margin-top: 10px;
+    padding-top: 8px;
   }
 }
