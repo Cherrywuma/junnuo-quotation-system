@@ -134,7 +134,7 @@
     if (!product) return "";
     return `
       <div class="product-details">
-        <h3>${escapeHtml(product.name)}</h3>
+        <h3>Product Details</h3>
         <p>${escapeHtml(product.description)}</p>
         <div class="detail-grid">
           ${listBlock("Technical Specifications", product.specs)}
@@ -181,28 +181,31 @@
                 <input class="image-upload" type="file" accept="image/*">
               </label>
             </div>
-            <div class="quote-line ${imageSource ? "has-image" : "no-image"}">
+            <div class="quote-item-line">
+              <div class="quote-line-main">
+                <span class="quote-line-index">${index + 1}</span>
+                <div>
+                  <strong>${escapeHtml(product?.name || "Select Product")}</strong>
+                  <span>${escapeHtml(categoryName(product?.category))}${publicModel(product) ? ` | Model: ${escapeHtml(publicModel(product))}` : ""}</span>
+                </div>
+              </div>
+              <label>Quantity
+                <input class="quantity-input" type="number" min="0" step="1" value="${escapeHtml(item.quantity)}">
+                <span class="print-value print-quantity-value">${escapeHtml(item.quantity || 0)}</span>
+              </label>
+              <label>Unit Price
+                <input class="unit-input" type="number" min="0" step="0.01" placeholder="Manual input" value="${escapeHtml(item.unitPrice)}">
+                <span class="print-value print-unit-value">${item.unitPrice === "" ? "Manual input required" : `${escapeHtml(getFormData().currency)} ${money(item.unitPrice)}`}</span>
+              </label>
+              <div class="amount-box">
+                <span>Amount</span>
+                <strong class="line-amount-value">${escapeHtml(getFormData().currency)} ${money(amount)}</strong>
+              </div>
+            </div>
+            <div class="product-detail-section ${imageSource ? "has-image" : "no-image"}">
               ${imageMarkup}
               <div class="line-body">
-                <div class="line-meta">
-                  <span><strong>Category:</strong> ${escapeHtml(categoryName(product?.category))}</span>
-                  ${publicModel(product) ? `<span><strong>Model:</strong> ${escapeHtml(publicModel(product))}</span>` : ""}
-                </div>
                 ${renderProductDetails(product)}
-                <div class="amount-grid">
-                  <label>Quantity
-                    <input class="quantity-input" type="number" min="0" step="1" value="${escapeHtml(item.quantity)}">
-                    <span class="print-value print-quantity-value">${escapeHtml(item.quantity || 0)}</span>
-                  </label>
-                  <label>Unit Price
-                    <input class="unit-input" type="number" min="0" step="0.01" placeholder="Manual input" value="${escapeHtml(item.unitPrice)}">
-                    <span class="print-value print-unit-value">${item.unitPrice === "" ? "Manual input required" : `${escapeHtml(getFormData().currency)} ${money(item.unitPrice)}`}</span>
-                  </label>
-                  <div class="amount-box">
-                    <span>Amount</span>
-                    <strong class="line-amount-value">${escapeHtml(getFormData().currency)} ${money(amount)}</strong>
-                  </div>
-                </div>
               </div>
             </div>
           </article>

@@ -74,7 +74,7 @@ main,
 .form-grid,
 .adjustment-grid,
 .product-editor,
-.amount-grid {
+.quote-item-line {
   display: grid;
   gap: 16px;
 }
@@ -175,13 +175,56 @@ button:disabled {
   font-size: 22px;
 }
 
-.quote-line {
+.quote-item-line {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 120px 170px 170px;
+  gap: 14px;
+  align-items: end;
+  margin-top: 18px;
+  padding: 14px;
+  background: var(--blue-soft);
+  border: 1px solid #cddced;
+  border-radius: 8px;
+}
+
+.quote-line-main {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.quote-line-main strong {
+  display: block;
+  color: var(--blue);
+  font-size: 16px;
+}
+
+.quote-line-main span:not(.quote-line-index) {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.quote-line-index {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  background: var(--blue);
+  color: var(--white);
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.product-detail-section {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 20px;
+  margin-top: 16px;
 }
 
-.quote-line.no-image {
+.product-detail-section.no-image {
   grid-template-columns: 1fr;
 }
 
@@ -245,12 +288,6 @@ button:disabled {
   background: #fff7ed;
   border: 1px solid #fed7aa;
   border-radius: 6px;
-}
-
-.amount-grid {
-  grid-template-columns: 130px 180px 180px;
-  margin-top: 16px;
-  align-items: end;
 }
 
 .amount-box,
@@ -359,13 +396,14 @@ button:disabled {
   .form-grid,
   .adjustment-grid,
   .product-editor,
+  .quote-item-line,
   .detail-grid,
   .customer-details,
   .terms-grid {
     grid-template-columns: 1fr;
   }
 
-  .amount-grid {
+  .product-detail-section {
     grid-template-columns: 1fr;
   }
 
@@ -444,8 +482,34 @@ button:disabled {
     gap: 8px;
   }
 
-  .amount-grid {
-    grid-template-columns: 90px 120px 140px;
+  .quote-item-line {
+    grid-template-columns: minmax(210px, 1fr) 64px 104px 118px;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 8px;
+  }
+
+  .quote-line-main {
+    grid-template-columns: 24px 1fr;
+    gap: 8px;
+  }
+
+  .quote-line-main strong {
+    font-size: 11px;
+  }
+
+  .quote-line-main span:not(.quote-line-index) {
+    font-size: 9px;
+  }
+
+  .quote-line-index {
+    width: 24px;
+    height: 24px;
+  }
+
+  .product-detail-section {
+    grid-template-columns: auto 1fr;
+    gap: 10px;
     margin-top: 8px;
   }
 
