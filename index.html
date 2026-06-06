@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JUNNUO Commercial Kitchen Equipment Quotation</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">Commercial Quotation</p>
+        <h1>JUNNUO Commercial Kitchen Equipment Quotation</h1>
+        <p>JUNNUO MECHANICAL AND ELECTRICAL TECHNOLOGY (KUNSHAN) CO., LTD</p>
+      </div>
+      <button type="button" id="printQuote" class="primary-button no-print">Print / Save as PDF</button>
+    </header>
+
+    <main>
+      <section class="panel quote-info">
+        <div class="section-title">
+          <p class="eyebrow">Quotation Details</p>
+          <h2>Customer and Terms</h2>
+        </div>
+        <div class="form-grid">
+          <label>Quotation No.
+            <input id="quotationNo" type="text" placeholder="JN-QT-2026-001">
+          </label>
+          <label>Date
+            <input id="quotationDate" type="date">
+          </label>
+          <label>Customer Company
+            <input id="customerCompany" type="text" placeholder="Customer company name">
+          </label>
+          <label>Contact Person
+            <input id="contactPerson" type="text" placeholder="Contact person">
+          </label>
+          <label>Country
+            <input id="country" type="text" placeholder="Country">
+          </label>
+          <label>Currency
+            <select id="currency">
+              <option>USD</option>
+              <option>EUR</option>
+              <option>RMB</option>
+            </select>
+          </label>
+          <label>Trade Term
+            <select id="tradeTerm">
+              <option>EXW</option>
+              <option>FOB Shanghai</option>
+              <option>CIF</option>
+              <option>DAP</option>
+            </select>
+          </label>
+          <label>Validity
+            <input id="validity" type="text" value="30 days">
+          </label>
+          <label>Delivery Time
+            <input id="deliveryTime" type="text" value="To be confirmed after order confirmation">
+          </label>
+          <label>Payment Terms
+            <input id="paymentTerms" type="text" value="T/T payment">
+          </label>
+          <label>Warranty
+            <input id="warranty" type="text" value="One year limited warranty">
+          </label>
+          <label>Remarks
+            <input id="remarks" type="text" placeholder="Optional remarks">
+          </label>
+        </div>
+      </section>
+
+      <section class="section-bar">
+        <div>
+          <p class="eyebrow">Products</p>
+          <h2>Selected Equipment</h2>
+        </div>
+        <button type="button" id="addProduct" class="secondary-button no-print">Add Product</button>
+      </section>
+
+      <section id="quoteItems" class="items-stack"></section>
+
+      <section class="panel adjustments">
+        <div class="section-title">
+          <p class="eyebrow">Summary</p>
+          <h2>Quotation Total</h2>
+        </div>
+        <div class="adjustment-grid">
+          <label>Freight
+            <input id="freight" type="number" min="0" step="0.01" value="0">
+          </label>
+          <label>Packing Charge
+            <input id="packingCharge" type="number" min="0" step="0.01" value="0">
+          </label>
+          <label>Discount
+            <input id="discount" type="number" min="0" step="0.01" value="0">
+          </label>
+          <div class="summary-card">
+            <span>Subtotal</span>
+            <strong id="subtotal">USD 0.00</strong>
+          </div>
+          <div class="summary-card total">
+            <span>Grand Total</span>
+            <strong id="grandTotal">USD 0.00</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="print-preview">
+        <div class="preview-header">
+          <div>
+            <p class="eyebrow">Official Quotation</p>
+            <h2>JUNNUO MECHANICAL AND ELECTRICAL TECHNOLOGY (KUNSHAN) CO., LTD</h2>
+          </div>
+          <div class="preview-meta">
+            <strong id="previewCustomer">Customer Company</strong>
+            <span id="previewMeta">Quotation No. | Date | EXW</span>
+          </div>
+        </div>
+        <div id="previewCustomerDetails" class="customer-details"></div>
+        <div id="summaryRows" class="summary-rows"></div>
+        <div id="previewTerms" class="terms-grid"></div>
+      </section>
+    </main>
+
+    <script src="products.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
