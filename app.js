@@ -57,6 +57,11 @@
     return product?.displayModel || product?.model || "";
   }
 
+  function resolveProductName(item, product) {
+    const customName = item?.customName ? String(item.customName).trim() : "";
+    return customName || product?.name || "Select Product";
+  }
+
   function uniqueItemId() {
     return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
@@ -96,6 +101,7 @@
     return {
       id: uniqueItemId(),
       productId: firstProduct ? firstProduct.id : "",
+      customName: "",
       quantity: 1,
       unitPrice: "",
       uploadedImage: "",
@@ -158,15 +164,16 @@
           product = productsInCategory[0] || product;
           item.productId = product.id;
         }
+        const displayName = resolveProductName(item, product);
         const imageSource = item.uploadedImage || product?.image || "";
         const amount = calculateAmount(item.quantity, item.unitPrice);
-        const imageMarkup = imageSource ? `<img class="product-image" src="${escapeHtml(imageSource)}" alt="${escapeHtml(product.name)}">` : "";
+        const imageMarkup = imageSource ? `<img class="product-image" src="${escapeHtml(imageSource)}" alt="${escapeHtml(displayName)}">` : "";
         return `
           <article class="product-card" data-item-id="${escapeHtml(item.id)}">
             <div class="product-card-top">
               <div>
                 <span class="item-label">Product ${index + 1}</span>
-                <h2>${escapeHtml(product?.name || "Select Product")}</h2>
+                <h2>${escapeHtml(displayName)}</h2>
               </div>
               <button type="button" class="ghost-button no-print remove-item" ${state.items.length === 1 ? "disabled" : ""}>Remove Product</button>
             </div>
@@ -177,6 +184,9 @@
               <label>Select Model
                 <select class="product-select">${productOptions(product?.id, category)}</select>
               </label>
+              <label>Product Name
+                <input class="product-name-input" type="text" value="${escapeHtml(displayName)}">
+              </label>
               <label>Upload Product Image
                 <input class="image-upload" type="file" accept="image/*">
               </label>
@@ -185,7 +195,7 @@
               <div class="quote-line-main">
                 <span class="quote-line-index">${index + 1}</span>
                 <div>
-                  <strong>${escapeHtml(product?.name || "Select Product")}</strong>
+                  <strong class="quote-product-name">${escapeHtml(displayName)}</strong>
                   <span>${escapeHtml(categoryName(product?.category))}${publicModel(product) ? ` | Model: ${escapeHtml(publicModel(product))}` : ""}</span>
                 </div>
               </div>
@@ -233,11 +243,20 @@
       card.querySelector(".category-select").addEventListener("change", (event) => {
         const product = PRODUCTS.find((entry) => entry.category === event.target.value);
         if (product) item.productId = product.id;
+        item.customName = "";
         renderItems();
       });
       card.querySelector(".product-select").addEventListener("change", (event) => {
         item.productId = event.target.value;
+        item.customName = "";
         renderItems();
+      });
+      card.querySelector(".product-name-input").addEventListener("input", (event) => {
+        item.customName = event.target.value;
+        const product = findProductById(item.productId);
+        const displayName = resolveProductName(item, product);
+        card.querySelector(".product-card-top h2").textContent = displayName;
+        card.querySelector(".quote-product-name").textContent = displayName;
       });
       card.querySelector(".quantity-input").addEventListener("input", (event) => {
         item.quantity = event.target.value;
@@ -321,6 +340,7 @@
     findProductByModel,
     hasDisplayableImage,
     publicModel,
+    resolveProductName,
     init,
   };
 });

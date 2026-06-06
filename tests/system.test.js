@@ -7,6 +7,7 @@ const {
   findProductByModel,
   hasDisplayableImage,
   publicModel,
+  resolveProductName,
 } = require("../app.js");
 
 const forbiddenKeys = [
@@ -82,6 +83,8 @@ assert.strictEqual(findProductByModel("1.2米长").id, "center-island-cabinet-12
 assert.strictEqual(findProductByModel("四门").id, "four-door-refrigerated-cabinet");
 assert.strictEqual(publicModel(findProductByModel("1.2米长")), "1200 mm");
 assert.strictEqual(publicModel(findProductByModel("四门")), "Four-Door");
+assert.strictEqual(resolveProductName({ customName: "" }, pfe800), pfe800.name);
+assert.strictEqual(resolveProductName({ customName: "Custom Pressure Fryer Name" }, pfe800), "Custom Pressure Fryer Name");
 
 assert.strictEqual(calculateAmount(3, ""), 0, "blank Unit Price must not auto-fill");
 assert.strictEqual(calculateAmount(3, 1200), 3600, "amount should equal quantity times unit price");
