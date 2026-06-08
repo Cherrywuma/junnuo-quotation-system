@@ -11,6 +11,7 @@ const {
   resolveQuoteProduct,
   createDraftSnapshot,
   restoreDraftSnapshot,
+  AUTOSAVE_RECORD_NAME,
   COUNTRIES,
 } = require("../app.js");
 
@@ -53,6 +54,7 @@ assert(COUNTRIES.includes("United States"), "country list should include United 
 assert(COUNTRIES.includes("China"), "country list should include China");
 assert(COUNTRIES.includes("United Kingdom"), "country list should include United Kingdom");
 assert(COUNTRIES.length > 180, "country list should include most countries");
+assert.strictEqual(AUTOSAVE_RECORD_NAME, "Auto Saved Current Record", "auto-save record name should be stable");
 
 scanForForbiddenKeys(PRODUCTS);
 

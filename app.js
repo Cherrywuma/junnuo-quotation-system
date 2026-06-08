@@ -8,6 +8,7 @@
   }
 })(typeof self !== "undefined" ? self : this, function ({ PRODUCTS, CATEGORIES }) {
   const DRAFT_STORAGE_KEY = "junnuoQuotationDraftsV1";
+  const AUTOSAVE_RECORD_NAME = "Auto Saved Current Record";
   const COUNTRIES = [
     "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
     "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
@@ -36,6 +37,8 @@
   ];
   const state = {
     items: [],
+    autosaveTimer: null,
+    isRestoring: false,
   };
 
   function money(value) {
@@ -211,8 +214,13 @@
   }
 
   function writeDrafts(drafts) {
-    if (typeof localStorage === "undefined") return;
-    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
+    if (typeof localStorage === "undefined") return true;
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   function setDraftStatus(message) {
@@ -227,7 +235,41 @@
     const names = Object.keys(drafts).sort((a, b) => (drafts[b].savedAt || "").localeCompare(drafts[a].savedAt || ""));
     select.innerHTML = names.length
       ? names.map((name) => `<option value="${escapeHtml(name)}" ${name === selectedName ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")
-      : `<option value="">No saved drafts</option>`;
+      : `<option value="">No saved records</option>`;
+  }
+
+  function saveAutosaveRecord() {
+    if (state.isRestoring || typeof document === "undefined") return;
+    const drafts = readDrafts();
+    drafts[AUTOSAVE_RECORD_NAME] = createDraftSnapshot(getFormData(), state.items);
+    if (!writeDrafts(drafts)) {
+      setDraftStatus("Auto save failed. Uploaded images may be too large for browser storage.");
+      return;
+    }
+    const select = document.getElementById("draftSelect");
+    renderDraftOptions(select?.value || AUTOSAVE_RECORD_NAME);
+    setDraftStatus("Auto saved current quotation");
+  }
+
+  function scheduleAutosave() {
+    if (state.isRestoring || typeof window === "undefined") return;
+    window.clearTimeout(state.autosaveTimer);
+    state.autosaveTimer = window.setTimeout(saveAutosaveRecord, 350);
+  }
+
+  function restoreAutosavedRecord() {
+    const drafts = readDrafts();
+    const restored = restoreDraftSnapshot(drafts[AUTOSAVE_RECORD_NAME]);
+    if (!restored.items.length && !Object.keys(restored.form).length) return false;
+    state.isRestoring = true;
+    setFormData(restored.form);
+    state.items = restored.items.length ? restored.items : [createItem()];
+    const nameInput = document.getElementById("draftName");
+    if (nameInput) nameInput.value = AUTOSAVE_RECORD_NAME;
+    renderDraftOptions(AUTOSAVE_RECORD_NAME);
+    state.isRestoring = false;
+    setDraftStatus("Restored auto saved quotation");
+    return true;
   }
 
   function setFormData(form) {
@@ -267,7 +309,10 @@
     const name = (nameInput.value || "").trim() || defaultDraftName(form);
     const drafts = readDrafts();
     drafts[name] = createDraftSnapshot(form, state.items);
-    writeDrafts(drafts);
+    if (!writeDrafts(drafts)) {
+      setDraftStatus("Record was not saved. Uploaded images may be too large for browser storage.");
+      return;
+    }
     nameInput.value = name;
     renderDraftOptions(name);
     setDraftStatus(`Saved: ${name}`);
@@ -277,16 +322,18 @@
     const select = document.getElementById("draftSelect");
     const name = select.value;
     if (!name) {
-      setDraftStatus("No draft selected");
+      setDraftStatus("No record selected");
       return;
     }
     const drafts = readDrafts();
     const restored = restoreDraftSnapshot(drafts[name]);
+    state.isRestoring = true;
     setFormData(restored.form);
     state.items = restored.items.length ? restored.items : [createItem()];
     document.getElementById("draftName").value = name;
     renderItems();
     renderDraftOptions(name);
+    state.isRestoring = false;
     setDraftStatus(`Loaded: ${name}`);
   }
 
@@ -294,12 +341,15 @@
     const select = document.getElementById("draftSelect");
     const name = select.value;
     if (!name) {
-      setDraftStatus("No draft selected");
+      setDraftStatus("No record selected");
       return;
     }
     const drafts = readDrafts();
     delete drafts[name];
-    writeDrafts(drafts);
+    if (!writeDrafts(drafts)) {
+      setDraftStatus("Record was not deleted. Browser storage is not available.");
+      return;
+    }
     document.getElementById("draftName").value = "";
     renderDraftOptions();
     setDraftStatus(`Deleted: ${name}`);
@@ -512,6 +562,7 @@
           item.customPackageInfoText = "";
           item.customNotes = "";
           renderItems();
+          scheduleAutosave();
           return;
         }
         const product = PRODUCTS.find((entry) => entry.category === event.target.value);
@@ -526,6 +577,7 @@
         item.customPackageInfoText = "";
         item.customNotes = "";
         renderItems();
+        scheduleAutosave();
       });
       card.querySelector(".product-select").addEventListener("change", (event) => {
         item.productId = event.target.value;
@@ -539,26 +591,31 @@
         item.customPackageInfoText = "";
         item.customNotes = "";
         renderItems();
+        scheduleAutosave();
       });
       card.querySelectorAll(".editable-field").forEach((field) => {
         field.addEventListener("input", (event) => {
           item[event.target.dataset.field] = event.target.value;
           updateItemText(card, item);
+          scheduleAutosave();
         });
       });
       card.querySelector(".quantity-input").addEventListener("input", (event) => {
         item.quantity = event.target.value;
         updateItemAmounts(card, item);
         renderPreview();
+        scheduleAutosave();
       });
       card.querySelector(".unit-input").addEventListener("input", (event) => {
         item.unitPrice = event.target.value;
         updateItemAmounts(card, item);
         renderPreview();
+        scheduleAutosave();
       });
       card.querySelector(".remove-item").addEventListener("click", () => {
         state.items = state.items.filter((entry) => entry.id !== item.id);
         renderItems();
+        scheduleAutosave();
       });
       card.querySelector(".image-upload").addEventListener("change", (event) => {
         const file = event.target.files[0];
@@ -567,6 +624,7 @@
         reader.onload = () => {
           item.uploadedImage = reader.result;
           renderItems();
+          scheduleAutosave();
         };
         reader.readAsDataURL(file);
       });
@@ -612,6 +670,7 @@
     document.getElementById("addProduct").addEventListener("click", () => {
       state.items.push(createItem());
       renderItems();
+      scheduleAutosave();
     });
     document.getElementById("printQuote").addEventListener("click", () => window.print());
     document.getElementById("saveDraft").addEventListener("click", saveCurrentDraft);
@@ -620,14 +679,25 @@
     document.getElementById("draftSelect").addEventListener("change", (event) => {
       document.getElementById("draftName").value = event.target.value || "";
     });
-    document.querySelectorAll(".quote-info input, .adjustments input").forEach((field) => field.addEventListener("input", renderPreview));
+    document.querySelectorAll(".quote-info input, .adjustments input").forEach((field) => field.addEventListener("input", () => {
+      renderPreview();
+      scheduleAutosave();
+    }));
     document.getElementById("country").addEventListener("change", () => {
       updateCustomCountryVisibility();
       renderPreview();
+      scheduleAutosave();
     });
-    document.getElementById("tradeTerm").addEventListener("change", renderPreview);
-    document.getElementById("currency").addEventListener("change", renderItems);
+    document.getElementById("tradeTerm").addEventListener("change", () => {
+      renderPreview();
+      scheduleAutosave();
+    });
+    document.getElementById("currency").addEventListener("change", () => {
+      renderItems();
+      scheduleAutosave();
+    });
     renderDraftOptions();
+    restoreAutosavedRecord();
     renderItems();
   }
 
@@ -645,6 +715,7 @@
     resolveQuoteProduct,
     createDraftSnapshot,
     restoreDraftSnapshot,
+    AUTOSAVE_RECORD_NAME,
     COUNTRIES,
     init,
   };
