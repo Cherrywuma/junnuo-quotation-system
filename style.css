@@ -101,6 +101,14 @@ main,
   align-self: center;
 }
 
+.custom-country-wrap {
+  display: none;
+}
+
+.custom-country-wrap.is-visible {
+  display: grid;
+}
+
 .adjustment-grid {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: end;

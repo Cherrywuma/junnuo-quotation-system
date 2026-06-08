@@ -11,6 +11,7 @@ const {
   resolveQuoteProduct,
   createDraftSnapshot,
   restoreDraftSnapshot,
+  COUNTRIES,
 } = require("../app.js");
 
 const forbiddenKeys = [
@@ -47,6 +48,10 @@ function scanForForbiddenKeys(value, path = "product") {
 assert.strictEqual(PRODUCTS.length, 37, "product library should contain 37 real Excel-derived entries");
 assert(CATEGORIES.some((category) => category.name === "Pressure Fryers"), "Pressure Fryers category missing");
 assert(CATEGORIES.some((category) => category.name === "Accessories"), "Accessories category missing");
+assert(COUNTRIES.includes("United States"), "country list should include United States");
+assert(COUNTRIES.includes("China"), "country list should include China");
+assert(COUNTRIES.includes("United Kingdom"), "country list should include United Kingdom");
+assert(COUNTRIES.length > 180, "country list should include most countries");
 
 scanForForbiddenKeys(PRODUCTS);
 

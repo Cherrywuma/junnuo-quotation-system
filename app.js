@@ -8,6 +8,32 @@
   }
 })(typeof self !== "undefined" ? self : this, function ({ PRODUCTS, CATEGORIES }) {
   const DRAFT_STORAGE_KEY = "junnuoQuotationDraftsV1";
+  const COUNTRIES = [
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+    "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+    "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+    "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+    "Fiji", "Finland", "France",
+    "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+    "Haiti", "Honduras", "Hungary",
+    "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+    "Jamaica", "Japan", "Jordan",
+    "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan",
+    "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+    "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
+    "Oman",
+    "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+    "Qatar",
+    "Romania", "Russia", "Rwanda",
+    "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+    "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
+    "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan",
+    "Vanuatu", "Vatican City", "Venezuela", "Vietnam",
+    "Yemen",
+    "Zambia", "Zimbabwe",
+  ];
   const state = {
     items: [],
   };
@@ -113,12 +139,16 @@
 
   function getFormData() {
     const field = (id) => document.getElementById(id).value.trim();
+    const selectedCountry = field("country");
+    const customCountry = field("customCountry");
     return {
       quotationNo: field("quotationNo"),
       quotationDate: field("quotationDate"),
       customerCompany: field("customerCompany"),
       contactPerson: field("contactPerson"),
-      country: field("country"),
+      country: selectedCountry === "__custom__" ? customCountry : selectedCountry,
+      countrySelect: selectedCountry,
+      customCountry,
       currency: field("currency"),
       tradeTerm: field("tradeTerm"),
       validity: field("validity"),
@@ -130,6 +160,20 @@
       packingCharge: document.getElementById("packingCharge").value,
       discount: document.getElementById("discount").value,
     };
+  }
+
+  function countryOptions(selectedCountry = "") {
+    const options = [`<option value="">Select country</option>`]
+      .concat(COUNTRIES.map((country) => `<option value="${escapeHtml(country)}" ${country === selectedCountry ? "selected" : ""}>${escapeHtml(country)}</option>`))
+      .concat(`<option value="__custom__" ${selectedCountry === "__custom__" ? "selected" : ""}>Custom / Other</option>`);
+    return options.join("");
+  }
+
+  function updateCustomCountryVisibility() {
+    const wrap = document.getElementById("customCountryWrap");
+    const country = document.getElementById("country");
+    if (!wrap || !country) return;
+    wrap.classList.toggle("is-visible", country.value === "__custom__");
   }
 
   function createDraftSnapshot(form, items) {
@@ -189,7 +233,10 @@
     setValue("quotationDate", form.quotationDate);
     setValue("customerCompany", form.customerCompany);
     setValue("contactPerson", form.contactPerson);
-    setValue("country", form.country);
+    const countryValue = form.countrySelect || (COUNTRIES.includes(form.country) ? form.country : form.country ? "__custom__" : "");
+    setValue("country", countryValue);
+    setValue("customCountry", countryValue === "__custom__" ? form.customCountry || form.country : "");
+    updateCustomCountryVisibility();
     setValue("currency", form.currency || "USD");
     setValue("tradeTerm", form.tradeTerm || "EXW");
     setValue("validity", form.validity || "30 days");
@@ -538,6 +585,8 @@
     if (typeof document === "undefined") return;
     const today = new Date().toISOString().slice(0, 10);
     document.getElementById("quotationDate").value = today;
+    document.getElementById("country").innerHTML = countryOptions();
+    updateCustomCountryVisibility();
     state.items = [createItem()];
     document.getElementById("addProduct").addEventListener("click", () => {
       state.items.push(createItem());
@@ -551,6 +600,10 @@
       document.getElementById("draftName").value = event.target.value || "";
     });
     document.querySelectorAll(".quote-info input, .adjustments input").forEach((field) => field.addEventListener("input", renderPreview));
+    document.getElementById("country").addEventListener("change", () => {
+      updateCustomCountryVisibility();
+      renderPreview();
+    });
     document.getElementById("tradeTerm").addEventListener("change", renderPreview);
     document.getElementById("currency").addEventListener("change", renderItems);
     renderDraftOptions();
@@ -571,6 +624,7 @@
     resolveQuoteProduct,
     createDraftSnapshot,
     restoreDraftSnapshot,
+    COUNTRIES,
     init,
   };
 });
