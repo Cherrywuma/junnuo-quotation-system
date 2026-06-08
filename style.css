@@ -460,6 +460,13 @@ button:disabled {
     margin: 14mm;
   }
 
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   body {
     background: var(--white);
     color: #111827;
