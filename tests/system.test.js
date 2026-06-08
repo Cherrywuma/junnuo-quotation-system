@@ -8,6 +8,7 @@ const {
   hasDisplayableImage,
   publicModel,
   resolveProductName,
+  resolveQuoteProduct,
 } = require("../app.js");
 
 const forbiddenKeys = [
@@ -85,6 +86,42 @@ assert.strictEqual(publicModel(findProductByModel("1.2米长")), "1200 mm");
 assert.strictEqual(publicModel(findProductByModel("四门")), "Four-Door");
 assert.strictEqual(resolveProductName({ customName: "" }, pfe800), pfe800.name);
 assert.strictEqual(resolveProductName({ customName: "Custom Pressure Fryer Name" }, pfe800), "Custom Pressure Fryer Name");
+
+const overriddenPfe = resolveQuoteProduct(
+  {
+    customName: "Customer Label PFE-800",
+    customModel: "PFE-800-SPECIAL",
+    customCategory: "Special Frying Equipment",
+    customDescription: "Customer-facing description",
+    customSpecsText: "Voltage: Custom\nCapacity: Custom",
+    customSellingPointsText: "Point A\nPoint B",
+    customApplicationsText: "Application A",
+    customPackageInfoText: "Package A",
+    customNotes: "Custom note",
+  },
+  pfe800
+);
+assert.strictEqual(overriddenPfe.name, "Customer Label PFE-800");
+assert.strictEqual(overriddenPfe.model, "PFE-800-SPECIAL");
+assert.strictEqual(overriddenPfe.category, "Special Frying Equipment");
+assert.deepStrictEqual(overriddenPfe.specs, ["Voltage: Custom", "Capacity: Custom"]);
+assert.deepStrictEqual(overriddenPfe.sellingPoints, ["Point A", "Point B"]);
+assert.strictEqual(overriddenPfe.notes, "Custom note");
+
+const customItem = resolveQuoteProduct(
+  {
+    customName: "Manual Custom Equipment",
+    customModel: "MANUAL-001",
+    customCategory: "Custom Equipment",
+    customDescription: "Fully manual item",
+    customSpecsText: "Manual specification",
+  },
+  null
+);
+assert.strictEqual(customItem.name, "Manual Custom Equipment");
+assert.strictEqual(customItem.model, "MANUAL-001");
+assert.strictEqual(customItem.category, "Custom Equipment");
+assert.deepStrictEqual(customItem.specs, ["Manual specification"]);
 
 assert.strictEqual(calculateAmount(3, ""), 0, "blank Unit Price must not auto-fill");
 assert.strictEqual(calculateAmount(3, 1200), 3600, "amount should equal quantity times unit price");

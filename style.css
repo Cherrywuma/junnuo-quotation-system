@@ -74,6 +74,7 @@ main,
 .form-grid,
 .adjustment-grid,
 .product-editor,
+.detail-editor,
 .quote-item-line {
   display: grid;
   gap: 16px;
@@ -97,6 +98,15 @@ main,
   border-radius: 8px;
 }
 
+.detail-editor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 18px;
+  padding: 16px;
+  background: #fbfcfe;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -106,7 +116,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   border: 1px solid #c7d0dc;
   border-radius: 6px;
@@ -114,6 +125,11 @@ select {
   color: var(--ink);
   font: inherit;
   background: var(--white);
+}
+
+textarea {
+  min-height: 82px;
+  resize: vertical;
 }
 
 button {
@@ -396,6 +412,7 @@ button:disabled {
   .form-grid,
   .adjustment-grid,
   .product-editor,
+  .detail-editor,
   .quote-item-line,
   .detail-grid,
   .customer-details,
@@ -430,8 +447,10 @@ button:disabled {
 
   .no-print,
   .product-editor,
+  .detail-editor,
   input,
   select,
+  textarea,
   button {
     display: none !important;
   }

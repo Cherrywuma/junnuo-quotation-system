@@ -62,6 +62,42 @@
     return customName || product?.name || "Select Product";
   }
 
+  function splitLines(value) {
+    return String(value || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+
+  function joinLines(values) {
+    return Array.isArray(values) ? values.join("\n") : "";
+  }
+
+  function resolveTextOverride(item, key, fallback) {
+    const value = item?.[key];
+    return value === undefined || value === null || String(value).trim() === "" ? fallback || "" : String(value).trim();
+  }
+
+  function resolveListOverride(item, key, fallback) {
+    const value = item?.[key];
+    if (value === undefined || value === null || String(value).trim() === "") return fallback || [];
+    return splitLines(value);
+  }
+
+  function resolveQuoteProduct(item, product) {
+    return {
+      name: resolveProductName(item, product),
+      model: resolveTextOverride(item, "customModel", publicModel(product)),
+      category: resolveTextOverride(item, "customCategory", categoryName(product?.category)),
+      description: resolveTextOverride(item, "customDescription", product?.description),
+      specs: resolveListOverride(item, "customSpecsText", product?.specs),
+      sellingPoints: resolveListOverride(item, "customSellingPointsText", product?.sellingPoints),
+      applications: resolveListOverride(item, "customApplicationsText", product?.applications),
+      packageInfo: resolveListOverride(item, "customPackageInfoText", product?.packageInfo),
+      notes: resolveTextOverride(item, "customNotes", product?.notes),
+    };
+  }
+
   function uniqueItemId() {
     return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
@@ -102,6 +138,14 @@
       id: uniqueItemId(),
       productId: firstProduct ? firstProduct.id : "",
       customName: "",
+      customModel: "",
+      customCategory: "",
+      customDescription: "",
+      customSpecsText: "",
+      customSellingPointsText: "",
+      customApplicationsText: "",
+      customPackageInfoText: "",
+      customNotes: "",
       quantity: 1,
       unitPrice: "",
       uploadedImage: "",
@@ -113,13 +157,17 @@
   }
 
   function productOptions(selectedId, categoryId) {
-    return PRODUCTS
+    const customOption = `<option value="__custom__" ${selectedId === "__custom__" ? "selected" : ""}>Custom Item / Not in list</option>`;
+    return (
+      customOption +
+      PRODUCTS
       .filter((product) => !categoryId || product.category === categoryId)
       .map((product) => {
         const model = publicModel(product) ? ` - ${publicModel(product)}` : "";
         return `<option value="${escapeHtml(product.id)}" ${product.id === selectedId ? "selected" : ""}>${escapeHtml(product.name + model)}</option>`;
       })
-      .join("");
+      .join("")
+    );
   }
 
   function categoryOptions(selectedId) {
@@ -136,19 +184,19 @@
     `;
   }
 
-  function renderProductDetails(product) {
-    if (!product) return "";
+  function renderProductDetails(quoteProduct) {
+    if (!quoteProduct) return "";
     return `
       <div class="product-details">
         <h3>Product Details</h3>
-        <p>${escapeHtml(product.description)}</p>
+        <p>${escapeHtml(quoteProduct.description)}</p>
         <div class="detail-grid">
-          ${listBlock("Technical Specifications", product.specs)}
-          ${listBlock("Selling Points", product.sellingPoints)}
-          ${listBlock("Applications", product.applications)}
-          ${listBlock("Package Information", product.packageInfo)}
+          ${listBlock("Technical Specifications", quoteProduct.specs)}
+          ${listBlock("Selling Points", quoteProduct.sellingPoints)}
+          ${listBlock("Applications", quoteProduct.applications)}
+          ${listBlock("Package Information", quoteProduct.packageInfo)}
         </div>
-        ${product.notes ? `<p class="note"><strong>Notes:</strong> ${escapeHtml(product.notes)}</p>` : ""}
+        ${quoteProduct.notes ? `<p class="note"><strong>Notes:</strong> ${escapeHtml(quoteProduct.notes)}</p>` : ""}
       </div>
     `;
   }
@@ -160,11 +208,12 @@
         let product = findProductById(item.productId);
         const category = product ? product.category : CATEGORIES[0]?.id;
         const productsInCategory = PRODUCTS.filter((entry) => entry.category === category);
-        if (product && !productsInCategory.some((entry) => entry.id === product.id)) {
+        if (product && item.productId !== "__custom__" && !productsInCategory.some((entry) => entry.id === product.id)) {
           product = productsInCategory[0] || product;
           item.productId = product.id;
         }
-        const displayName = resolveProductName(item, product);
+        const quoteProduct = resolveQuoteProduct(item, product);
+        const displayName = quoteProduct.name;
         const imageSource = item.uploadedImage || product?.image || "";
         const amount = calculateAmount(item.quantity, item.unitPrice);
         const imageMarkup = imageSource ? `<img class="product-image" src="${escapeHtml(imageSource)}" alt="${escapeHtml(displayName)}">` : "";
@@ -182,13 +231,39 @@
                 <select class="category-select">${categoryOptions(category)}</select>
               </label>
               <label>Select Model
-                <select class="product-select">${productOptions(product?.id, category)}</select>
+                <select class="product-select">${productOptions(item.productId, category)}</select>
+              </label>
+              <label>Quote Category
+                <input class="editable-field" data-field="customCategory" type="text" value="${escapeHtml(quoteProduct.category)}">
+              </label>
+              <label>Quote Model
+                <input class="editable-field" data-field="customModel" type="text" value="${escapeHtml(quoteProduct.model)}">
               </label>
               <label>Product Name
-                <input class="product-name-input" type="text" value="${escapeHtml(displayName)}">
+                <input class="editable-field product-name-input" data-field="customName" type="text" value="${escapeHtml(displayName)}">
               </label>
               <label>Upload Product Image
                 <input class="image-upload" type="file" accept="image/*">
+              </label>
+            </div>
+            <div class="detail-editor no-print">
+              <label>Description
+                <textarea class="editable-field" data-field="customDescription" rows="3">${escapeHtml(quoteProduct.description)}</textarea>
+              </label>
+              <label>Technical Specifications
+                <textarea class="editable-field" data-field="customSpecsText" rows="5">${escapeHtml(joinLines(quoteProduct.specs))}</textarea>
+              </label>
+              <label>Selling Points
+                <textarea class="editable-field" data-field="customSellingPointsText" rows="5">${escapeHtml(joinLines(quoteProduct.sellingPoints))}</textarea>
+              </label>
+              <label>Applications
+                <textarea class="editable-field" data-field="customApplicationsText" rows="4">${escapeHtml(joinLines(quoteProduct.applications))}</textarea>
+              </label>
+              <label>Package Information
+                <textarea class="editable-field" data-field="customPackageInfoText" rows="4">${escapeHtml(joinLines(quoteProduct.packageInfo))}</textarea>
+              </label>
+              <label>Notes
+                <textarea class="editable-field" data-field="customNotes" rows="3">${escapeHtml(quoteProduct.notes)}</textarea>
               </label>
             </div>
             <div class="quote-item-line">
@@ -196,7 +271,7 @@
                 <span class="quote-line-index">${index + 1}</span>
                 <div>
                   <strong class="quote-product-name">${escapeHtml(displayName)}</strong>
-                  <span>${escapeHtml(categoryName(product?.category))}${publicModel(product) ? ` | Model: ${escapeHtml(publicModel(product))}` : ""}</span>
+                  <span class="quote-product-meta">${escapeHtml(quoteProduct.category)}${quoteProduct.model ? ` | Model: ${escapeHtml(quoteProduct.model)}` : ""}</span>
                 </div>
               </div>
               <label>Quantity
@@ -215,7 +290,7 @@
             <div class="product-detail-section ${imageSource ? "has-image" : "no-image"}">
               ${imageMarkup}
               <div class="line-body">
-                ${renderProductDetails(product)}
+                ${renderProductDetails(quoteProduct)}
               </div>
             </div>
           </article>
@@ -237,6 +312,15 @@
     if (amountValue) amountValue.textContent = `${form.currency} ${money(amount)}`;
   }
 
+  function updateItemText(card, item) {
+    const product = findProductById(item.productId);
+    const quoteProduct = resolveQuoteProduct(item, product);
+    card.querySelector(".product-card-top h2").textContent = quoteProduct.name;
+    card.querySelector(".quote-product-name").textContent = quoteProduct.name;
+    card.querySelector(".quote-product-meta").textContent = `${quoteProduct.category}${quoteProduct.model ? ` | Model: ${quoteProduct.model}` : ""}`;
+    card.querySelector(".line-body").innerHTML = renderProductDetails(quoteProduct);
+  }
+
   function bindItemEvents() {
     document.querySelectorAll(".product-card").forEach((card) => {
       const item = state.items.find((entry) => entry.id === card.dataset.itemId);
@@ -244,19 +328,34 @@
         const product = PRODUCTS.find((entry) => entry.category === event.target.value);
         if (product) item.productId = product.id;
         item.customName = "";
+        item.customModel = "";
+        item.customCategory = "";
+        item.customDescription = "";
+        item.customSpecsText = "";
+        item.customSellingPointsText = "";
+        item.customApplicationsText = "";
+        item.customPackageInfoText = "";
+        item.customNotes = "";
         renderItems();
       });
       card.querySelector(".product-select").addEventListener("change", (event) => {
         item.productId = event.target.value;
         item.customName = "";
+        item.customModel = "";
+        item.customCategory = "";
+        item.customDescription = "";
+        item.customSpecsText = "";
+        item.customSellingPointsText = "";
+        item.customApplicationsText = "";
+        item.customPackageInfoText = "";
+        item.customNotes = "";
         renderItems();
       });
-      card.querySelector(".product-name-input").addEventListener("input", (event) => {
-        item.customName = event.target.value;
-        const product = findProductById(item.productId);
-        const displayName = resolveProductName(item, product);
-        card.querySelector(".product-card-top h2").textContent = displayName;
-        card.querySelector(".quote-product-name").textContent = displayName;
+      card.querySelectorAll(".editable-field").forEach((field) => {
+        field.addEventListener("input", (event) => {
+          item[event.target.dataset.field] = event.target.value;
+          updateItemText(card, item);
+        });
       });
       card.querySelector(".quantity-input").addEventListener("input", (event) => {
         item.quantity = event.target.value;
@@ -341,6 +440,7 @@
     hasDisplayableImage,
     publicModel,
     resolveProductName,
+    resolveQuoteProduct,
     init,
   };
 });
