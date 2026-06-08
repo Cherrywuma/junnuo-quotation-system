@@ -22,6 +22,20 @@
           <p class="eyebrow">Quotation Details</p>
           <h2>Customer and Terms</h2>
         </div>
+        <div class="draft-tools no-print">
+          <label>Draft Name
+            <input id="draftName" type="text" placeholder="e.g. Demo Customer - PFE-800">
+          </label>
+          <label>Saved Drafts
+            <select id="draftSelect">
+              <option value="">No saved drafts</option>
+            </select>
+          </label>
+          <button type="button" id="saveDraft" class="secondary-button">Save Draft</button>
+          <button type="button" id="loadDraft" class="ghost-button">Load Draft</button>
+          <button type="button" id="deleteDraft" class="ghost-button">Delete Draft</button>
+          <span id="draftStatus" class="draft-status" aria-live="polite"></span>
+        </div>
         <div class="form-grid">
           <label>Quotation No.
             <input id="quotationNo" type="text" placeholder="JN-QT-2026-001">

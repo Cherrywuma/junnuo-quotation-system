@@ -75,6 +75,7 @@ main,
 .adjustment-grid,
 .product-editor,
 .detail-editor,
+.draft-tools,
 .quote-item-line {
   display: grid;
   gap: 16px;
@@ -82,6 +83,22 @@ main,
 
 .form-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.draft-tools {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(160px, 1fr) auto auto auto minmax(160px, 1fr);
+  align-items: end;
+  margin: 16px 0 20px;
+  padding: 14px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.draft-status {
+  color: var(--muted);
+  font-size: 13px;
+  align-self: center;
 }
 
 .adjustment-grid {
@@ -413,6 +430,7 @@ button:disabled {
   .adjustment-grid,
   .product-editor,
   .detail-editor,
+  .draft-tools,
   .quote-item-line,
   .detail-grid,
   .customer-details,

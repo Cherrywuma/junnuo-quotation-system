@@ -9,6 +9,8 @@ const {
   publicModel,
   resolveProductName,
   resolveQuoteProduct,
+  createDraftSnapshot,
+  restoreDraftSnapshot,
 } = require("../app.js");
 
 const forbiddenKeys = [
@@ -122,6 +124,30 @@ assert.strictEqual(customItem.name, "Manual Custom Equipment");
 assert.strictEqual(customItem.model, "MANUAL-001");
 assert.strictEqual(customItem.category, "Custom Equipment");
 assert.deepStrictEqual(customItem.specs, ["Manual specification"]);
+
+const draftSnapshot = createDraftSnapshot(
+  {
+    quotationNo: "JN-QT-001",
+    customerCompany: "Demo Customer",
+    currency: "USD",
+  },
+  [
+    {
+      productId: "pfe-800",
+      customName: "Custom PFE-800",
+      quantity: 2,
+      unitPrice: "1500",
+      customSpecsText: "Custom spec",
+    },
+  ]
+);
+assert.strictEqual(draftSnapshot.version, 1);
+assert.strictEqual(draftSnapshot.form.customerCompany, "Demo Customer");
+assert.strictEqual(draftSnapshot.items[0].customName, "Custom PFE-800");
+
+const restoredDraft = restoreDraftSnapshot(draftSnapshot);
+assert.strictEqual(restoredDraft.form.quotationNo, "JN-QT-001");
+assert.strictEqual(restoredDraft.items[0].unitPrice, "1500");
 
 assert.strictEqual(calculateAmount(3, ""), 0, "blank Unit Price must not auto-fill");
 assert.strictEqual(calculateAmount(3, 1200), 3600, "amount should equal quantity times unit price");

@@ -7,6 +7,7 @@
     root.JUNNUO_APP = api;
   }
 })(typeof self !== "undefined" ? self : this, function ({ PRODUCTS, CATEGORIES }) {
+  const DRAFT_STORAGE_KEY = "junnuoQuotationDraftsV1";
   const state = {
     items: [],
   };
@@ -129,6 +130,126 @@
       packingCharge: document.getElementById("packingCharge").value,
       discount: document.getElementById("discount").value,
     };
+  }
+
+  function createDraftSnapshot(form, items) {
+    return {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      form: { ...form },
+      items: items.map((item) => ({ ...item })),
+    };
+  }
+
+  function restoreDraftSnapshot(snapshot) {
+    if (!snapshot || snapshot.version !== 1) {
+      return { form: {}, items: [] };
+    }
+    return {
+      form: { ...(snapshot.form || {}) },
+      items: Array.isArray(snapshot.items) ? snapshot.items.map((item) => ({ ...item })) : [],
+    };
+  }
+
+  function readDrafts() {
+    if (typeof localStorage === "undefined") return {};
+    try {
+      return JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY) || "{}");
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function writeDrafts(drafts) {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(drafts));
+  }
+
+  function setDraftStatus(message) {
+    const status = document.getElementById("draftStatus");
+    if (status) status.textContent = message;
+  }
+
+  function renderDraftOptions(selectedName = "") {
+    const select = document.getElementById("draftSelect");
+    if (!select) return;
+    const drafts = readDrafts();
+    const names = Object.keys(drafts).sort((a, b) => (drafts[b].savedAt || "").localeCompare(drafts[a].savedAt || ""));
+    select.innerHTML = names.length
+      ? names.map((name) => `<option value="${escapeHtml(name)}" ${name === selectedName ? "selected" : ""}>${escapeHtml(name)}</option>`).join("")
+      : `<option value="">No saved drafts</option>`;
+  }
+
+  function setFormData(form) {
+    const setValue = (id, value) => {
+      const field = document.getElementById(id);
+      if (field) field.value = value || "";
+    };
+    setValue("quotationNo", form.quotationNo);
+    setValue("quotationDate", form.quotationDate);
+    setValue("customerCompany", form.customerCompany);
+    setValue("contactPerson", form.contactPerson);
+    setValue("country", form.country);
+    setValue("currency", form.currency || "USD");
+    setValue("tradeTerm", form.tradeTerm || "EXW");
+    setValue("validity", form.validity || "30 days");
+    setValue("deliveryTime", form.deliveryTime || "To be confirmed after order confirmation");
+    setValue("paymentTerms", form.paymentTerms || "T/T payment");
+    setValue("warranty", form.warranty || "One year limited warranty");
+    setValue("remarks", form.remarks);
+    setValue("freight", form.freight || 0);
+    setValue("packingCharge", form.packingCharge || 0);
+    setValue("discount", form.discount || 0);
+  }
+
+  function defaultDraftName(form) {
+    const customer = form.customerCompany || "Quotation";
+    const number = form.quotationNo || new Date().toISOString().slice(0, 10);
+    return `${customer} - ${number}`;
+  }
+
+  function saveCurrentDraft() {
+    const form = getFormData();
+    const nameInput = document.getElementById("draftName");
+    const name = (nameInput.value || "").trim() || defaultDraftName(form);
+    const drafts = readDrafts();
+    drafts[name] = createDraftSnapshot(form, state.items);
+    writeDrafts(drafts);
+    nameInput.value = name;
+    renderDraftOptions(name);
+    setDraftStatus(`Saved: ${name}`);
+  }
+
+  function loadSelectedDraft() {
+    const select = document.getElementById("draftSelect");
+    const name = select.value;
+    if (!name) {
+      setDraftStatus("No draft selected");
+      return;
+    }
+    const drafts = readDrafts();
+    const restored = restoreDraftSnapshot(drafts[name]);
+    setFormData(restored.form);
+    state.items = restored.items.length ? restored.items : [createItem()];
+    document.getElementById("draftName").value = name;
+    renderItems();
+    renderDraftOptions(name);
+    setDraftStatus(`Loaded: ${name}`);
+  }
+
+  function deleteSelectedDraft() {
+    const select = document.getElementById("draftSelect");
+    const name = select.value;
+    if (!name) {
+      setDraftStatus("No draft selected");
+      return;
+    }
+    const drafts = readDrafts();
+    delete drafts[name];
+    writeDrafts(drafts);
+    document.getElementById("draftName").value = "";
+    renderDraftOptions();
+    setDraftStatus(`Deleted: ${name}`);
   }
 
   function createItem() {
@@ -423,9 +544,16 @@
       renderItems();
     });
     document.getElementById("printQuote").addEventListener("click", () => window.print());
+    document.getElementById("saveDraft").addEventListener("click", saveCurrentDraft);
+    document.getElementById("loadDraft").addEventListener("click", loadSelectedDraft);
+    document.getElementById("deleteDraft").addEventListener("click", deleteSelectedDraft);
+    document.getElementById("draftSelect").addEventListener("change", (event) => {
+      document.getElementById("draftName").value = event.target.value || "";
+    });
     document.querySelectorAll(".quote-info input, .adjustments input").forEach((field) => field.addEventListener("input", renderPreview));
     document.getElementById("tradeTerm").addEventListener("change", renderPreview);
     document.getElementById("currency").addEventListener("change", renderItems);
+    renderDraftOptions();
     renderItems();
   }
 
@@ -441,6 +569,8 @@
     publicModel,
     resolveProductName,
     resolveQuoteProduct,
+    createDraftSnapshot,
+    restoreDraftSnapshot,
     init,
   };
 });
