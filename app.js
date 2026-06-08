@@ -332,6 +332,7 @@
 
   function productOptions(selectedId, categoryId) {
     const customOption = `<option value="__custom__" ${selectedId === "__custom__" ? "selected" : ""}>Custom Item / Not in list</option>`;
+    if (categoryId === "other") return customOption;
     return (
       customOption +
       PRODUCTS
@@ -380,7 +381,7 @@
     container.innerHTML = state.items
       .map((item, index) => {
         let product = findProductById(item.productId);
-        const category = product ? product.category : CATEGORIES[0]?.id;
+        const category = product ? product.category : item.customCategory === "Other / Custom Item" ? "other" : CATEGORIES[0]?.id;
         const productsInCategory = PRODUCTS.filter((entry) => entry.category === category);
         if (product && item.productId !== "__custom__" && !productsInCategory.some((entry) => entry.id === product.id)) {
           product = productsInCategory[0] || product;
@@ -499,6 +500,20 @@
     document.querySelectorAll(".product-card").forEach((card) => {
       const item = state.items.find((entry) => entry.id === card.dataset.itemId);
       card.querySelector(".category-select").addEventListener("change", (event) => {
+        if (event.target.value === "other") {
+          item.productId = "__custom__";
+          item.customName = "";
+          item.customModel = "";
+          item.customCategory = "Other / Custom Item";
+          item.customDescription = "";
+          item.customSpecsText = "";
+          item.customSellingPointsText = "";
+          item.customApplicationsText = "";
+          item.customPackageInfoText = "";
+          item.customNotes = "";
+          renderItems();
+          return;
+        }
         const product = PRODUCTS.find((entry) => entry.category === event.target.value);
         if (product) item.productId = product.id;
         item.customName = "";

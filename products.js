@@ -13,6 +13,7 @@
     { id: "preparation-equipment", name: "Preparation Equipment" },
     { id: "refrigeration-equipment", name: "Refrigeration Equipment" },
     { id: "accessories", name: "Accessories" },
+    { id: "other", name: "Other / Custom Item" },
   ];
 
   const PRODUCTS = [

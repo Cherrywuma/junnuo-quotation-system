@@ -48,6 +48,7 @@ function scanForForbiddenKeys(value, path = "product") {
 assert.strictEqual(PRODUCTS.length, 37, "product library should contain 37 real Excel-derived entries");
 assert(CATEGORIES.some((category) => category.name === "Pressure Fryers"), "Pressure Fryers category missing");
 assert(CATEGORIES.some((category) => category.name === "Accessories"), "Accessories category missing");
+assert(CATEGORIES.some((category) => category.id === "other" && category.name === "Other / Custom Item"), "Other custom category missing");
 assert(COUNTRIES.includes("United States"), "country list should include United States");
 assert(COUNTRIES.includes("China"), "country list should include China");
 assert(COUNTRIES.includes("United Kingdom"), "country list should include United Kingdom");
