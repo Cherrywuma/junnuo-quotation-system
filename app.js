@@ -39,25 +39,31 @@
   };
 
   function money(value) {
-    const number = Number(value) || 0;
+    const number = parseNumberInput(value);
     return number.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
   }
 
+  function parseNumberInput(value) {
+    if (value === "" || value === null || value === undefined) return 0;
+    const normalized = String(value).replace(/,/g, "").replace(/[^\d.-]/g, "");
+    return Number(normalized) || 0;
+  }
+
   function calculateAmount(quantity, unitValue) {
-    const qty = Number(quantity) || 0;
+    const qty = parseNumberInput(quantity);
     if (unitValue === "" || unitValue === null || unitValue === undefined) return 0;
-    const unit = Number(unitValue) || 0;
+    const unit = parseNumberInput(unitValue);
     return qty * unit;
   }
 
   function calculateTotals(items, adjustments) {
     const subtotal = items.reduce((sum, item) => sum + calculateAmount(item.quantity, item.unitPrice), 0);
-    const freight = Number(adjustments.freight) || 0;
-    const packingCharge = Number(adjustments.packingCharge) || 0;
-    const discount = Number(adjustments.discount) || 0;
+    const freight = parseNumberInput(adjustments.freight);
+    const packingCharge = parseNumberInput(adjustments.packingCharge);
+    const discount = parseNumberInput(adjustments.discount);
     return {
       subtotal,
       freight,
@@ -447,7 +453,7 @@
                 <span class="print-value print-quantity-value">${escapeHtml(item.quantity || 0)}</span>
               </label>
               <label>Unit Price
-                <input class="unit-input" type="number" min="0" step="0.01" placeholder="Manual input" value="${escapeHtml(item.unitPrice)}">
+                <input class="unit-input" type="text" inputmode="decimal" placeholder="Manual input" value="${escapeHtml(item.unitPrice)}">
                 <span class="print-value print-unit-value">${item.unitPrice === "" ? "Manual input required" : `${escapeHtml(getFormData().currency)} ${money(item.unitPrice)}`}</span>
               </label>
               <div class="amount-box">

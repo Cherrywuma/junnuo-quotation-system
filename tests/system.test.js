@@ -156,6 +156,8 @@ assert.strictEqual(restoredDraft.items[0].unitPrice, "1500");
 
 assert.strictEqual(calculateAmount(3, ""), 0, "blank Unit Price must not auto-fill");
 assert.strictEqual(calculateAmount(3, 1200), 3600, "amount should equal quantity times unit price");
+assert.strictEqual(calculateAmount(2, "1,500"), 3000, "Unit Price should accept comma formatted numbers");
+assert.strictEqual(calculateAmount(2, "1500.50"), 3001, "Unit Price should accept decimal numbers");
 
 const totals = calculateTotals(
   [
